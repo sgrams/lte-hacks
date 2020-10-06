@@ -1,0 +1,2 @@
+# qmi-firmware-update -b -d 1199:9079
+# qmi-firmware-update --update-download -d 1199:9078 SWI9X30C_02.33.03.00.cwe SWI9X30C_02.33.03.00_GENERIC_002.072_000.nvu

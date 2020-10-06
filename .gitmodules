@@ -1,0 +1,3 @@
+[submodule "em7455/SierraWirelessGen"]
+	path = em7455/SierraWirelessGen
+	url = https://github.com/bkerler/SierraWirelessGen

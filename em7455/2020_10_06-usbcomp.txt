@@ -1,0 +1,11 @@
+# cd /usr/include/
+
+# h2ph bits/wordsize.h
+# h2ph bits/long-double.h
+# h2ph bits/ioctl
+# h2ph bits/ioctls.h
+# h2ph bits/ioctl-types.h
+# h2ph sys/ttydefaults.h
+
+# ./swi_usbcomp.pl
+# ./swi_usbcomp.pl --usbcomp=8
