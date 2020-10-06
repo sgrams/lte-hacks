@@ -1,0 +1,2 @@
+# cat /etc/modules.d/60-usb-serial
+#usbserial vendor=0x1199 product=0x9079 ## uncomment to enable serial port binding to your em7455 (this disables qmi/net access)

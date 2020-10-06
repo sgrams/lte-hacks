@@ -1,0 +1,6 @@
+config interface 'wwan'
+        option ifname 'wwan0'
+        option proto 'qmi'
+        option device '/dev/cdc-wdm0'
+        option apn 'YOUR_APN_HERE'
+        option auth 'none'

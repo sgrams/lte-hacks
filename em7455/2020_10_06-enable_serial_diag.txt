@@ -1,0 +1,13 @@
+# cd /usr/include
+
+# h2ph sys/ioctl.h
+# h2ph sys/cdefs.h
+# h2ph sys/ttydefaults.h
+
+# h2ph bits/wordsize.h
+# h2ph bits/long-double.h
+# h2ph bits/ioctls.h
+# h2ph bits/ioctl-types.h
+
+# cd <this_git_tree>/em7455/sbin/
+# ./swi_usbcomp.pl --usbcomp=8
