@@ -1,0 +1,62 @@
+#!/bin/sh
+### 2020/02/26
+### sierra-gps: script controlling GPS tty output
+###             from sierra wireless wwan cards
+### Must be run with root privileges.
+###
+### Stanislaw Grams <sjg@fmdx.pl>
+### /usr/local/bin/sierra-gps
+
+## BEGIN CHANGE ME
+DEV=/dev/serial/by-id/usb-Sierra_Wireless__Incorporated_Sierra_Wireless_EM7455_Qualcomm_Snapdragon_X7_LTE-A-if02-port0
+LOCKFILE=/var/run/sierra-gps.lockfile
+## END CHANGE ME
+
+die() {
+  echo "$@" 1>&2
+  exit 1
+}
+
+status() {
+  if [[ -e $LOCKFILE ]]; then
+	  echo "GPS module is printing NMEA output to TTY"
+	  exit
+  else
+	  echo "GPS module is *NOT* printing NMEA output to TTY"
+  fi
+}
+
+up() {
+  test_root
+  systemctl stop gpsd gpsd.socket
+  echo "\$GPS_START" > $DEV
+  touch $LOCKFILE
+  systemctl start gpsd gpsd.socket
+}
+
+down() {
+  test_root
+  echo "\$GPS_STOP" > $DEV
+  rm $LOCKFILE
+  systemctl stop gpsd gpsd.socket
+}
+
+reset() {
+  down
+  up
+}
+
+test_root() {
+  if test $(id -u) -ne 0; then
+    echo "Root privilege is required"
+    exit 1
+  fi
+}
+
+case $1 in
+  up)     up ;;
+  down)   down ;;
+  status) status ;;
+  reset)  reset ;;
+  *)      die "usage: $1 up|down|status|reset" ;;
+esac

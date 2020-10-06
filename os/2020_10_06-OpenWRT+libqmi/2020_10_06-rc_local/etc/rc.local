@@ -1,0 +1,6 @@
+/sbin/uqmi -d /dev/cdc-wdm0 --set-device-operating-mode offline
+/sbin/uqmi -d /dev/cdc-wdm0 --set-device-operating-mode reset
+/bin/sleep 20
+/sbin/uqmi -d /dev/cdc-wdm0 --set-device-operating-mode online
+/sbin/uqmi -d /dev/cdc-wdm0 --set-autoconnect enabled
+/sbin/uqmi -d /dev/cdc-wdm0 --network-register

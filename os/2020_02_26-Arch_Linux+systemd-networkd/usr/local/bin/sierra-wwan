@@ -1,0 +1,103 @@
+#!/bin/sh
+### 2020/02/26
+### sierra-wwan: script controlling sierra wireless
+###              wwan interfaces
+### Must be run with root privileges.
+###
+### Stanislaw Grams <sjg@fmdx.pl>
+### /usr/local/bin/sierra-wwan
+
+## BEGIN CHANGE ME
+DEV=/dev/cdc-wdm0
+ROUTE_METRIC=0
+## END CHANGE ME
+
+die() {
+  echo "$@" 1>&2
+  exit 1
+}
+
+mask2cdr () {
+  # Assumes there's no "255." after a non-255 byte in the mask
+  local x=${1##*255.}
+  set -- 0^^^128^192^224^240^248^252^254^ $(( (${#1} - ${#x})*2 )) ${x%%.*}
+  x=${1%%$3*}
+  echo $(( $2 + (${#x}/4) ))
+}
+
+ifdown() {
+  cat > /etc/systemd/network/30-wwan.network << EOF
+[Match]
+Name=$IFACE
+[Link]
+Unmanaged=true
+EOF
+  ip link set "$IFACE" down
+  qmi-network "$DEV" stop
+  qmicli -d $DEV --dms-set-operating-mode=persistent-low-power
+  systemctl restart systemd-networkd
+  systemctl restart systemd-resolved
+}
+
+ifup() {
+  ifdown
+  qmicli -d $DEV --dms-set-operating-mode=online
+  qmi-network "$DEV" start
+  eval $(qmicli -d "$DEV" --wds-get-current-settings \
+    | tail -n+2 \
+    | tr '[:lower:]' '[:upper:]' \
+    | sed -e 's/: /=/;s/^\s*//;s/ /_/g')
+
+  IPV4_CIDR=$IPV4_ADDRESS/$(mask2cdr $IPV4_SUBNET_MASK)
+
+  cat > /etc/systemd/network/30-wwan.network << EOF
+[Match]
+Name=$IFACE
+[Link]
+MTUBytes=$MTU
+Multicast=true
+ARP=false
+[Network]
+Address=$IPV4_CIDR
+DNS=$IPV4_PRIMARY_DNS
+DNS=$IPV4_SECONDARY_DNS
+[Route]
+Gateway=$IPV4_GATEWAY_ADDRESS
+Metric=$ROUTE_METRIC
+EOF
+  echo Y > "/sys/class/net/$IFACE/qmi/raw_ip"
+  systemctl restart systemd-networkd
+  systemctl restart systemd-resolved
+}
+
+status () {
+  qmicli -d "$DEV" --wds-get-current-settings
+  qmicli -d "$DEV" --wds-get-packet-service-status
+  qmicli -d "$DEV" --wds-get-packet-statistics
+  qmicli -d "$DEV" --nas-get-signal-info
+  qmicli -d "$DEV" --nas-get-serving-system
+}
+
+reset () {
+  ifdown
+  ifup
+  echo "wwan has been reseted"
+}
+
+test_root () {
+  if test $(id -u) -ne 0; then
+    echo "Root privilege is required"
+    exit 1
+  fi
+}
+
+test_root
+IFACE=$(qmicli -d $DEV -w)
+
+case $1 in
+  up)     ifup ;;
+  down)   ifdown ;;
+  status) status ;;
+  reset)  reset ;;
+  *)      die "usage: $1 up|down|status|reset" ;;
+esac

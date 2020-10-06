@@ -1,0 +1,13 @@
+[Match]
+Name=wwp0s20f0u2i8
+[Link]
+MTUBytes=
+Multicast=true
+ARP=false
+[Network]
+Address=/0
+DNS=
+DNS=
+[Route]
+Gateway=
+Metric=0
